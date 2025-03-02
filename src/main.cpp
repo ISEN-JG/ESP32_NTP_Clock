@@ -2,12 +2,17 @@
 #include <Wire.h> 
 #include <LiquidCrystal_I2C.h>
 
+#include "DHT.h"
+
+#define DHTPIN 10  
+#define DHTTYPE DHT11
 LiquidCrystal_I2C lcd(0x27,16,2); 
 
 
 #include <WiFi.h>
 #include "time.h"
-
+int h;
+int t;
 const char* ssid     = "Red";
 const char* password = "killer123";
 
@@ -18,13 +23,14 @@ char timemy[20];
 char date[20];
 void printLocalTime();
 void printlcdtime();
+DHT dht(DHTPIN, DHTTYPE);
 void setup(){
-  
+ 
   Wire.setPins(9, 6);
   lcd.init();                      // initialize the lcd 
   lcd.backlight();
   Serial.begin(115200);
-
+  dht.begin();
   // Connect to Wi-Fi
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -56,10 +62,12 @@ void setup(){
 
 
 void loop(){
-  
+   h = dht.readHumidity();
+  // Read temperature as Celsius (the default)
+   t = dht.readTemperature();
   printLocalTime();
   printlcdtime();
-  delay(200);
+  delay(1000);
   lcd.clear();
 }
 
@@ -79,8 +87,13 @@ void printLocalTime(){
 void printlcdtime(){
 
   lcd.print(timemy);
+  lcd.write(' ');
+  lcd.print(  t);
+  lcd.print((char)B11011111); 
   lcd.setCursor(0,1);
- lcd.print(date);
-
+  lcd.print(date);
+  lcd.write(' ');
+  lcd.print( h);
+  lcd.print("%");
 
 }
